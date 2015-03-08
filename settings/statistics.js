@@ -1,6 +1,7 @@
 FullScreenMario.prototype.settings.statistics = {
     "prefix": "FullScreenMario",
     "doMakeContainer": true,
+    "autoSave": true,
     "displayChanges": {
         "Infinity": "INF"
     },
