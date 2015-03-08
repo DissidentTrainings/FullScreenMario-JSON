@@ -1,7 +1,7 @@
 /**
  * QuadsKeepr.js
  * 
- * Quadrant-based collision detection. A grid structure of quadrants is kept 
+ * Quadrant-based collision detection. A grid structure of Quadrants is kept,
  * with Things placed within quadrants they intersect. Each Quadrant knows which
  * Things are in it, and each Thing knows its quadrants. Operations are 
  * available to shift quadrants horizontally or vertically and add/remove rows
