@@ -832,13 +832,13 @@ FullScreenMario.prototype.settings.sprites = {
         "Text": {
             "DecorativeBack": ["multiple", "corners", {
                 "top": "x054,",
-                "topRight": "00",
+                "topright": "00",
                 "right": "x024,",
-                "bottomRight": "00",
+                "bottomright": "00",
                 "bottom": "x024,",
-                "bottomLeft": "00",
+                "bottomleft": "00",
                 "left": "x054,",
-                "topLeft": "00",
+                "topleft": "00",
                 "middle": "x094,"
             }],
             "DecorativeDot": "p[0,2,22]220221011",
