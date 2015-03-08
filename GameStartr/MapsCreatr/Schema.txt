@@ -14,7 +14,7 @@ FirstCreationCommand = {
 };
 
 CreationCommand = // one of...
-    { "x": Number || 0, "y": Number || 0, "Thing": String} // Thing placement
+    { "x": Number || 0, "y": Number || 0, "Thing": String, ...} // Thing placement
     Object // Macro arguments
 
 Location = {

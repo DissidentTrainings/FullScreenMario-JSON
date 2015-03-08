@@ -1,17 +1,17 @@
 # MapsCreatr.js
 
 Storage container and lazy loader for GameStarter maps that is the back-end
-counterpart to MapsHandlr.js. Maps are created with their custom Location and
-Area members, which are initialized the first time the map is retrieved. 
-Areas contain a "creation" Object[] detailing the instructions on creating 
-that Area's "PreThing" objects, which store Things along with basic position
+counterpart to MapsHandlr. Maps are created with their custom Location and Area
+members, which are initialized the first time the map is retrieved. Areas 
+contain a "creation" Object[] detailing the instructions on creating that Area's
+Area's "PreThing" objects, which store Things along with basic position
 information. 
 
 In short, a Map contains a set of Areas, each of which knows its size and the
 steps to create its contents. Each Map also contains a set of Locations, 
 which are entry points into one Area each. 
 
-See Schema.json for the minimum and recommended format for Maps, Locations,
+See Schema.txt for the minimum and recommended format for Maps, Locations,
 Areas, and creation commands.
 
 
