@@ -31,8 +31,12 @@ var GameStartr = (function (EightBittr) {
      * 
      */
     function GameStartr(customs) {
-        if (typeof (customs) === "undefined") {
+        if (typeof customs === "undefined") {
             customs = {};
+        }
+
+        if (typeof this.settings === "undefined") {
+            this.settings = {};
         }
 
         EightBittr.call(this, {
@@ -63,6 +67,10 @@ var GameStartr = (function (EightBittr) {
                 }
             }
         });
+
+        if (customs.extraResets) {
+            this.resets.push.apply(this.resets, customs.extraResets);
+        }
     }
 
     GameStartr.prototype = EightBitterProto;
@@ -102,7 +110,7 @@ var GameStartr = (function (EightBittr) {
      * @param {EightBittr} EightBitter
      * @param {Object} [customs]
      */
-    function reset(EightBitter, customs) {
+    function reset(EightBitter, customs, extraResets) {
         EightBittr.prototype.reset(EightBitter, EightBitter.resets, customs);
     };
 
@@ -115,7 +123,7 @@ var GameStartr = (function (EightBittr) {
      * @return {Array} How long each reset Function took followed by the entire
      * operation, in milliseconds.
      */
-    function resetTimed(EightBitter, customs) {
+    function resetTimed(EightBitter, customs, extraResets) {
         return EightBittr.prototype.resetTimed(
             EightBitter, EightBitter.resets, customs
         );
@@ -247,7 +255,8 @@ var GameStartr = (function (EightBittr) {
         EightBitter.GamesRunner = new GamesRunnr(proliferate({
             "scope": EightBitter,
             "onPlay": EightBitter.onGamePlay.bind(EightBitter, EightBitter),
-            "onPause": EightBitter.onGamePause.bind(EightBitter, EightBitter)
+            "onPause": EightBitter.onGamePause.bind(EightBitter, EightBitter),
+            "callbackArguments": [EightBitter]
         }, EightBitter.settings.runner));
     }
 
@@ -614,6 +623,7 @@ var GameStartr = (function (EightBittr) {
      * @remarks This is generally called as the onMake call in an ObjectMakr.
      */
     function thingProcess(thing, type, settings, defaults) {
+
         // If the Thing doesn't specify its own title, use the type by default
         thing.title = thing.title || type;
 
@@ -734,11 +744,23 @@ var GameStartr = (function (EightBittr) {
                 proliferate(thing, attributes[attribute]);
                 // Also add a marking to the name, which will go into the className
                 if (thing.name) {
-                    thing.name += ' ' + attribute;
+                    thing.name += " " + attribute;
                 } else {
-                    thing.name = thing.title + ' ' + attribute;
+                    thing.name = thing.title + " " + attribute;
                 }
             }
+        }
+    }
+
+    /**
+     * Processes additional attributes for an Area as an onMake callback. This
+     * directly calls thingProcessAttributes on the Area.
+     * 
+     * @param {Area} area
+     */
+    function areaProcess(area) {
+        if (area.attributes) {
+            GameStartr.prototype.thingProcessAttributes(area, area.attributes);
         }
     }
 
@@ -1174,8 +1196,8 @@ var GameStartr = (function (EightBittr) {
      */
     function generateObjectKey(thing) {
         return thing.EightBitter.MapsHandler.getArea().setting
-                + ' ' + thing.groupType + ' '
-                + thing.title + ' ' + thing.className;
+                + " " + thing.groupType + " "
+                + thing.title + " " + thing.className;
     }
 
     /**
@@ -1204,7 +1226,7 @@ var GameStartr = (function (EightBittr) {
     }
 
     /**
-     * Adds a string to a Thing's class after a ' ', updates the Thing's 
+     * Adds a string to a Thing's class after a " ", updates the Thing's 
      * sprite, and marks it as having changed appearance.
      * 
      * @param {Thing} thing
@@ -1217,9 +1239,9 @@ var GameStartr = (function (EightBittr) {
     }
 
     /**
-     * Adds multiple strings to a Thing's class after a ' ', updates the Thing's 
+     * Adds multiple strings to a Thing's class after a " ", updates the Thing's 
      * sprite, and marks it as having changed appearance. Strings may be given 
-     * as Arrays or Strings; Strings will be split on ' '. Any number of 
+     * as Arrays or Strings; Strings will be split on " ". Any number of 
      * additional arguments may be given.
      * 
      * @param {Thing} thing
@@ -1231,7 +1253,7 @@ var GameStartr = (function (EightBittr) {
             arr = arguments[i];
 
             if (!(arr instanceof Array)) {
-                arr = arr.split(' ');
+                arr = arr.split(" ");
             }
 
             for (j = arr.length - 1; j >= 0; j -= 1) {
@@ -1261,7 +1283,7 @@ var GameStartr = (function (EightBittr) {
     /**
      * Removes multiple strings from a Thing's class, updates the Thing's 
      * sprite, and marks it as having changed appearance. Strings may be given 
-     * as Arrays or Strings; Strings will be split on ' '. Any number of 
+     * as Arrays or Strings; Strings will be split on " ". Any number of 
      * additional arguments may be given.
      * 
      * @param {Thing} thing
@@ -1472,6 +1494,7 @@ var GameStartr = (function (EightBittr) {
         "addThing": addThing,
         "thingProcess": thingProcess,
         "thingProcessAttributes": thingProcessAttributes,
+        "areaProcess": areaProcess,
         "mapPlaceRandomCommands": mapPlaceRandomCommands,
         // Physics & similar
         "markChanged": markChanged,
