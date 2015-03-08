@@ -64,7 +64,7 @@ global variables (rather than just those in transforms). Defaults to false.
        },
       "pipeline": ["square"]
   });
-  console.log(ChangeLiner.process(7), "Test"); // 49
+  console.log(ChangeLiner.process(7, "Test")); // 49
   console.log(ChangeLiner.getCached("Test")); // 49
   ```
 
