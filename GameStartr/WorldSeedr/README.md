@@ -8,7 +8,7 @@ randomization of other possibilities of certain probabilities. Additional
 functionality is provided to stagger layout of children, such as spacing between
 possibilities. 
 
-See Schema.json for a listing of allowed possibility properties.
+See Schema.txt for a listing of allowed possibility properties.
 
 
 ## Basic Architecture
@@ -31,7 +31,7 @@ can start with a clean slate.
 
 #### Important Member Variables
 
-* **possibilities** *`Object`* A very large listing of possibilities, keyed by 
+* **possibilities** *`Object`* - A very large listing of possibilities, keyed by 
 title.
 
 * **random** *`Function`* - A Function that may replace Math.random internally.

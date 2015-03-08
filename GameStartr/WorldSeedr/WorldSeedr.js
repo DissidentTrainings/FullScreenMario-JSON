@@ -9,7 +9,7 @@
  * functionality is provided to stagger layout of children, such as spacing
  * between possibilities.
  * 
- * See Schema.json for a listing of allowed possibility properties.
+ * See Schema.txt for a listing of allowed possibility properties.
  * 
  * @example
  * // Creating and using a WorldSeedr to generate a simple square.
