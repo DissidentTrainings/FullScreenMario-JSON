@@ -361,7 +361,7 @@ function NumberMakr(settings) {
      * @return {Number} Random Number in [min,max).
      */
     self.randomWithin = function (min, max) {
-        return self.random(max - min) + min;
+        return self.randomUnder(max - min) + min;
     };
     
     
@@ -386,11 +386,49 @@ function NumberMakr(settings) {
     };
     
     /**
-     * @return {Boolean} Either 1 or 2, with 50% probability of each.
+     * @return {Boolean} Either true or false, with 50% probability of each.
      */
     self.randomBoolean = function () {
         return self.randomInt(2) === 1;
     };
+
+    /**
+     * @param {Number} probability   How likely the returned Boolean will be
+     *                               true, in [0, 1]. Greater than 1 is counted
+     *                               as 1.
+     * 
+     * @return {Boolean} Either true or false, with the probability of true 
+     *                   equal to the given probability.
+     */
+    self.randomBooleanProbability = function (probability) {
+        return self.random() < probability;
+    };
+
+    /**
+     * @param {Number} numerator   The numerator of a fraction. 
+     * @param {Number} denominator   The denominator of a fraction.
+     * @return {Boolean} Either true or false, with a probability equal to the
+     *                   given fraction.
+     */
+    self.randomBooleanFraction = function (numerator, denominator) {
+        return self.random() <= (numerator / denominator);
+    };
+
+    /**
+     * @param {Array} array
+     * @return {Number} A random index, from 0 to the given Array's length
+     */
+    self.randomArrayIndex = function (array) {
+        return self.randomIntWithin(array.length);
+    }
+
+    /**
+     * @param {Array} array
+     * @return {Mixed} A random element from within the given Array.
+     */
+    self.randomArrayMember = function (array) {
+        return array[self.randomArrayIndex(array)];
+    }
     
     
     self.reset(settings || {});
