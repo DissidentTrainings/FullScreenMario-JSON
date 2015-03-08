@@ -47,7 +47,7 @@ var EightBittr = (function () {
             }
         }
     }
-    
+
     /**
      * Given an associate array of requirement names to the files that should
      * include them, this makes sure each of those requirements is a property of
@@ -100,7 +100,7 @@ var EightBittr = (function () {
         for (i = 0; i < resets.length; i += 1) {
             EightBitter[resets[i]](EightBitter, customs)
         }
-        
+
         EightBitter.customs = customs;
     }
     
@@ -207,11 +207,17 @@ var EightBittr = (function () {
         canvas.style.height = (height * scaling) + "px";
         
         // For speed's sake, disable image smoothing in all browsers
-        context.imageSmoothingEnabled = false;
-        context.webkitImageSmoothingEnabled = false;
-        context.mozImageSmoothingEnabled = false;
-        context.msImageSmoothingEnabled = false;
-        context.oImageSmoothingEnabled = false;
+        if (typeof context.imageSmoothingEnabled !== "undefined") {
+            context.imageSmoothingEnabled = false;
+        } else if (typeof context.webkitImageSmoothingEnabled !== "undefined") {
+            context.webkitImageSmoothingEnabled = false;
+        } else if (typeof context.mozImageSmoothingEnabled !== "undefined") {
+            context.mozImageSmoothingEnabled = false;
+        } else if (typeof context.msImageSmoothingEnabled !== "undefined") {
+            context.msImageSmoothingEnabled = false;
+        } else if (typeof context.oImageSmoothingEnabled !== "undefined") {
+            context.oImageSmoothingEnabled = false;
+        }
         
         return canvas;
     }
@@ -311,7 +317,7 @@ var EightBittr = (function () {
     function setMidX(thing, x) {
         thing.EightBitter.setLeft(
             thing, 
-            x + thing.width * thing.EightBitter.unitsize / 2
+            x - thing.width * thing.EightBitter.unitsize / 2
         );
     }
     
@@ -324,7 +330,7 @@ var EightBittr = (function () {
     function setMidY(thing, y) {
         thing.EightBitter.setTop(
             thing,
-            y + thing.height * thing.EightBitter.unitsize / 2
+            y - thing.height * thing.EightBitter.unitsize / 2
         );
     }
     
@@ -481,7 +487,7 @@ var EightBittr = (function () {
             thing.EightBitter.shiftHoriz(thing, Math.max(-maxSpeed, (x - midx)));
         }
     }
-    
+
     /**
      * Shifts a Thing toward a target y, but limits the total distance allowed.
      * Distance is computed as from the Thing's vertical midpoint.
