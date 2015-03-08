@@ -83,9 +83,12 @@ function StatsHoldr(settings) {
 
         // Default attributes for value, as Object<Object>.
         defaults,
-        
+
         // A reference to localStorage or a replacement object.
         localStorage,
+
+        // Whether this should save changes to localStorage automatically
+        autoSave,
 
         // A prefix to store things under in localStorage.
         prefix,
@@ -95,19 +98,19 @@ function StatsHoldr(settings) {
 
         // An Array of elements as createElement arguments, outside-to-inside.
         containers,
-        
+
         // Any hard-coded changes to element content, such as "INF" for Infinity
         displayChanges,
 
         // An Array of objects to be passed to triggered events.
         callbackArgs,
-        
+
         // Helper Function to copy Object attributes, such as from EightBittr.
         proliferate,
-        
+
         // Helper Function to create an element, such as from EightBittr.
         createElement;
-    
+
     /**
      * Resets the StatsHoldr.
      * 
@@ -131,6 +134,9 @@ function StatsHoldr(settings) {
      *                                  used as a shim (defaults to window's 
      *                                  localStorage, or a new Object if that
      *                                  does not exist).
+     * @param {Boolean} [autoSave]   Whether this should save changes to 
+     *                               localStorage automatically (by default,
+     *                               false).
      * @param {Boolean} [doMakeContainer]   Whether an HTML container with 
      *                                      children for each value should be
      *                                      made (defaults to false).
@@ -142,9 +148,10 @@ function StatsHoldr(settings) {
         prefix = settings.prefix;
         proliferate = settings.proliferate;
         createElement = settings.createElement;
+        autoSave = settings.autoSave;
         callbackArgs = settings.callbackArgs || [];
         localStorage = settings.localStorage || window.localStorage || {};
-        
+
         defaults = settings.defaults || {};
         displayChanges = settings.displayChanges || {};
 
@@ -164,15 +171,15 @@ function StatsHoldr(settings) {
             container = makeContainer(settings.containers);
         }
     };
-    
-    
+
+
     /* Retrieval
      */
-     
+
     /**
      * @return {String[]} The names of all value's keys.
      */
-    self.getKeyNames = function () {
+    self.getKeys = function () {
         return Object.keys(values);
     };
 
@@ -182,22 +189,52 @@ function StatsHoldr(settings) {
      */
     self.get = function (key) {
         checkExistence(key);
-        
+
         return values[key].value;
-    }
-    
+    };
+
     /**
      * @param {String} key   The key for a known value.
      * @return {Object} The settings for that particular key.
      */
     self.getObject = function (key) {
         return values[key];
-    }
-    
-    
+    };
+
+    /**
+     * @param {String} key   The key for a potentially known value.
+     * @return {Boolean} Whether there is a value under that key.
+     */
+    self.hasKey = function (key) {
+        return values.hasOwnProperty(key);
+    };
+
+    /**
+     * @return {Object} The objects being stored.
+     */
+    self.getValues = function () {
+        return values;
+    };
+
+    /**
+     * @return {Object} A mapping of key names to the actual values of all 
+     *                  objects being stored.
+     */
+    self.export = function () {
+        var output = {},
+            i;
+
+        for (i in values) {
+            output[i] = values[i].value
+        }
+
+        return output;
+    };
+
+
     /* Values
     */
-    
+
     /**
      * Adds a new key & value pair to by linking to a newly created Value.
      * 
@@ -208,7 +245,7 @@ function StatsHoldr(settings) {
     self.addStatistic = function (key, settings) {
         return values[key] = new Value(key, settings);
     };
-    
+
     /**
      * Creates a new Value with the given key and settings. Defaults are given
      * to the value via proliferate before the settings.
@@ -249,14 +286,14 @@ function StatsHoldr(settings) {
      */
     function Value(key, settings) {
         this.key = key;
-        
+
         proliferate(this, defaults);
         proliferate(this, settings);
 
         if (!this.hasOwnProperty("value")) {
             this.value = this.valueDefault;
         }
-        
+
         if (this.hasElement) {
             this.element = createElement(this.element || "div", {
                 className: prefix + "_value " + key
@@ -272,30 +309,7 @@ function StatsHoldr(settings) {
         if (this.storeLocally) {
             // If there exists an old version of this property, get it 
             if (localStorage.hasOwnProperty([prefix + key])) {
-                var reference = localStorage[prefix + key],
-                    constructor;
-
-                // If possible, use the same type as valueDefault
-                // This ensure 7 doesn't get converted to "7" or vice-versa.
-                if (this.hasOwnProperty("value")) {
-                    if (this.value === null || this.value === undefined) {
-                        constructor = false;
-                    } else {
-                        constructor = this.value.constructor;
-                    }
-                } else if (this.hasOwnProperty("valueDefault")) {
-                    constructor = this.valueDefault.constructor;
-                }
-                
-                this.value = constructor ? new constructor(reference).valueOf() : reference;
-                
-                // Remember: false will be stored as "false", which is truthy!
-                if (this.value.constructor === Boolean) {
-                    console.warn(
-                        "Key '" + key + "' is a boolean instead of a Number, "
-                        + "which will always save to true."
-                    );
-                }
+                this.value = this.retrieveLocalStorage();
             }
             // Otherwise save the new version to memory
             else {
@@ -303,7 +317,7 @@ function StatsHoldr(settings) {
             }
         }
     }
-    
+
     /**
      * General update Function to be run whenever the internal value is changed.
      * It runs all the trigger, modular, etc. checks, updates the HTML element
@@ -314,7 +328,7 @@ function StatsHoldr(settings) {
     Value.prototype.update = function () {
         // Mins and maxes must be obeyed before any other considerations
         if (
-            this.hasOwnProperty("minimum") 
+            this.hasOwnProperty("minimum")
             && Number(this.value) <= Number(this.minimum)
         ) {
             this.value = this.minimum;
@@ -322,7 +336,7 @@ function StatsHoldr(settings) {
                 this.onMinimum.apply(this, callbackArgs);
             }
         } else if (
-            this.hasOwnProperty("maximum") 
+            this.hasOwnProperty("maximum")
             && Number(this.value) <= Number(this.maximum)
         ) {
             this.value = this.maximum;
@@ -330,24 +344,24 @@ function StatsHoldr(settings) {
                 this.on_maximum.apply(this, callbackArgs);
             }
         }
-    
+
         if (this.modularity) {
             this.checkModularity();
         }
-        
+
         if (this.triggers) {
             this.checkTriggers();
         }
-        
+
         if (this.hasElement) {
             this.updateElement();
         }
-        
+
         if (this.storeLocally) {
             this.updateLocalStorage();
         }
     };
-    
+
     /**
      * Checks if the current value should trigger a callback, and if so calls 
      * it.
@@ -359,7 +373,7 @@ function StatsHoldr(settings) {
             this.triggers[this.value].apply(this, callbackArgs);
         }
     };
-    
+
     /**
      * Checks if the current value is greater than the modularity (assuming
      * modular is a non-zero Numbers), and if so, continuously reduces value and 
@@ -371,7 +385,7 @@ function StatsHoldr(settings) {
         if (this.value.constructor !== Number || !this.modularity) {
             return;
         }
-        
+
         while (this.value >= this.modularity) {
             this.value = Math.max(0, this.value - this.modularity);
             if (this.onModular) {
@@ -379,7 +393,7 @@ function StatsHoldr(settings) {
             }
         }
     };
-    
+
     /**
      * Updates the Value's element's second child to be the Value's value.
      * 
@@ -392,20 +406,49 @@ function StatsHoldr(settings) {
             this.element.children[1].textContent = this.value;
         }
     };
-    
+
+    /**
+     * Retrieves a Value's value from localStorage, making sure not to try to
+     * JSON.parse an undefined or null value.
+     * 
+     * @this {Value}
+     * @return {Mixed}
+     */
+    Value.prototype.retrieveLocalStorage = function () {
+        var value = localStorage.getItem(prefix + this.key);
+
+        switch (value) {
+            case "undefined":
+                return undefined;
+            case "null":
+                return null;
+        }
+
+        if (value.constructor !== String) {
+            return value;
+        }
+
+        return JSON.parse(value);
+    };
+
     /**
      * Stores a Value's value in localStorage under the prefix plus its key.
      * 
      * @this {Value}
+     * @param {Boolean} [overrideAutoSave]   Whether the policy on saving should
+     *                                       be ignored (so saving happens
+     *                                       regardless). By default, false.
      */
-    Value.prototype.updateLocalStorage = function () {
-        localStorage[prefix + this.key] = this.value;
+    Value.prototype.updateLocalStorage = function (overrideAutoSave) {
+        if (autoSave || overrideAutoSave) {
+            localStorage[prefix + this.key] = JSON.stringify(this.value);
+        }
     };
 
 
     /* Updating values
-     */
-    
+    */
+
     /**
      * Sets the value for the Value under the given key, then updates the Value
      * (including the Value's element and localStorage, if needed).
@@ -415,11 +458,11 @@ function StatsHoldr(settings) {
      */
     self.set = function (key, value) {
         checkExistence(key);
-        
+
         values[key].value = value;
         values[key].update();
     }
-    
+
     /**
      * Increases the value for the Value under the given key, via addition for
      * Numbers or concatenation for Strings.
@@ -429,11 +472,11 @@ function StatsHoldr(settings) {
      */
     self.increase = function (key, amount) {
         checkExistence(key);
-        
+
         values[key].value += arguments.length > 1 ? amount : 1;
         values[key].update();
     }
-    
+
     /**
      * Increases the value for the Value under the given key, via addition for
      * Numbers or concatenation for Strings.
@@ -443,7 +486,7 @@ function StatsHoldr(settings) {
      */
     self.decrease = function (key, value) {
         checkExistence(key);
-        
+
         values[key].value -= arguments.length > 1 ? value : 1;
         values[key].update();
     }
@@ -452,8 +495,6 @@ function StatsHoldr(settings) {
      * Toggles whether a value is 1 or 0.
      * 
      * @param {String} key   The key of the Value.
-     * @remarks Toggling requires the type to be a Boolean, since true becomes 
-     *          "true" becomes NaN.
      */
     self.toggle = function (key) {
         checkExistence(key);
@@ -471,7 +512,16 @@ function StatsHoldr(settings) {
             throw new Error("Unknown key given to StatsHoldr: '" + key + "'.");
         }
     }
-    
+
+    /**
+     * Manually saves all values to localStorage, ignoring the autoSave flag. 
+     */
+    self.saveAll = function () {
+        for (var key in values) {
+            values[key].updateLocalStorage(true);
+        }
+    };
+
 
     /* HTML helpers
     */
@@ -518,16 +568,16 @@ function StatsHoldr(settings) {
             current.appendChild(child);
             current = child;
         }
-        
+
         for (key in values) {
             if (values[key].hasElement) {
                 child.appendChild(values[key].element);
             }
         }
-        
+
         return output;
     }
-    
+
 
     self.reset(settings || {});
 }
