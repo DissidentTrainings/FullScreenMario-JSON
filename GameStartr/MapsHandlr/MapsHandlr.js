@@ -117,7 +117,6 @@ function MapsHandlr(settings) {
         onUnspawn = settings.onUnspawn;
         
         screenAttributes = settings.screenAttributes || [];
-        
         stretchAdd = settings.stretchAdd;
         afterAdd = settings.afterAdd;
     };
@@ -178,20 +177,42 @@ function MapsHandlr(settings) {
     self.getMaps = function () {
         return MapsCreator.getMaps();
     };
-    
+
     /**
      * @return {Area} The current Area.
      */
     self.getArea = function () {
         return areaCurrent;
     };
+
+    /**
+     * @return {String} The name of the current Area.
+     */
+    self.getAreaName = function () {
+        return areaCurrent.name;
+    };
     
     /**
-     * @reutrn {Location} A Location within the current Map.
+     * @return {Location} A Location within the current Map.
      */
     self.getLocation = function (location) {
         return areaCurrent.map.locations[location];
-    }
+    };
+
+    /**
+     * @return {Location} The Location within the current Map used to spawn.
+     */
+    self.getLocationCurrent = function () {
+        return locationCurrent;
+    };
+
+    /**
+     * @return {String} The name of the Location within the current Map used to
+     *                  spawn.
+     */
+    self.getLocationCurrentName = function () {
+        return locationCurrent.name;
+    };
     
     /**
      * Simple getter function for the internal prethings object. This will be
@@ -201,7 +222,7 @@ function MapsHandlr(settings) {
      */
     self.getPreThings = function () {
         return prethings;
-    }
+    };
     
     
     /* Map / location setting
@@ -254,13 +275,19 @@ function MapsHandlr(settings) {
         // Since the location is valid, mark it as current (with its area)
         locationCurrent = location;
         areaCurrent = location.area;
+        areaCurrent.boundaries = {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+        }
         
         // Copy all the settings from that area into the MapScreenr container
         for (i = 0, len = screenAttributes.length; i < len; i += 1) {
             attribute = screenAttributes[i];
             MapScreener[attribute] = areaCurrent[attribute];
         }
-        
+
         // Reset the prethings object, enabling it to be used as a fresh start
         // for the new Area/Location placements
         prethings = MapsCreator.getPreThings(location.area);
@@ -281,31 +308,25 @@ function MapsHandlr(settings) {
     };
     
     /**
-     * Applies the stretchAdd Function to each given "stretch" command and 
-     * stores the result in stretches. If none are provided, [] is given.
+     * Applies the stretchAdd Function to each given "stretch" command and  
+     * stores the commands in stretches.
      * 
-     * @param {Object[]} [stretchesRaw]
+     * @param {Object[]} stretchesRaw
      */
     function setStretches(stretchesRaw) {
-        if (stretchesRaw) {
-            stretches = stretchesRaw.map(stretchAdd);
-        } else {
-            stretches = [];
-        }
+        stretches = stretchesRaw;
+        stretches.forEach(stretchAdd);
     }
     
     /**
      * Applies the afterAdd Function to each given "after" command and stores
-     * the result in afters. If none are provided, [] is given.
+     * the commands in afters.
      * 
-     * @param {Object[]} [aftersRaw]
+     * @param {Object[]} aftersRaw
      */
     function setAfters(aftersRaw) {
-        if (aftersRaw) {
-            afters = aftersRaw.map(afterAdd);
-        } else {
-            afters = [];
-        }
+        afters = aftersRaw;
+        afters.forEach(afterAdd);
     }
     
     /**
@@ -379,7 +400,7 @@ function MapsHandlr(settings) {
             if (group.length === 0) {
                 continue;
             }
-            
+
             // Find the start and end points within the PreThings Array
             // Ex. if direction="xInc", go from .left >= left to .left <= right
             mid = (group.length / 2) | 0;
