@@ -30,7 +30,7 @@
  *     }
  * });
  * console.log(ObjectMaker.make("Square")); // Square {constructor: function... 
- * console.log(ObjectMaker.make("Square").area); // "width ^ 2
+ * console.log(ObjectMaker.make("Square").area); // "width ^ 2"
  * console.log(ObjectMaker.getFunction("Square")); // function Square() {}
  * 
  * @example
